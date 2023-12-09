@@ -1,0 +1,41 @@
+{
+  "team_dire": {
+    "heroes": [
+      {
+        "id": 1,
+        "synergies": [1, 2, 3, 4],
+        "counters": [1, 2, 3, 4, 5],
+        "winrates_team": [1, 2, 3, 4],
+        "winrates_enemy": [1, 2, 3, 4, 5]
+      },
+      {
+        "id": 2,
+        "synergies": [1, 2, 3, 4],
+        "counters": [1, 2, 3, 4, 5],
+        "winrates_team": [1, 2, 3, 4],
+        "winrates_enemy": [1, 2, 3, 4, 5]
+      },
+      {
+        "id": 3,
+        "synergies": [1, 2, 3, 4],
+        "counters": [1, 2, 3, 4, 5],
+        "winrates_team": [1, 2, 3, 4],
+        "winrates_enemy": [1, 2, 3, 4, 5]
+      },
+      {
+        "id": 4,
+        "synergies": [1, 2, 3, 4],
+        "counters": [1, 2, 3, 4, 5],
+        "winrates_team": [1, 2, 3, 4],
+        "winrates_enemy": [1, 2, 3, 4, 5]
+      },
+      {
+        "id": 1,
+        "synergies": [1, 2, 3, 4],
+        "counters": [1, 2, 3, 4, 5],
+        "winrates_team": [1, 2, 3, 4],
+        "winrates_enemy": [1, 2, 3, 4, 5]
+      }
+    ]
+  }
+}
