@@ -11,6 +11,8 @@ import (
 )
 
 const (
+	iterations     = 1000
+	hiddenNeurons  = 14
 	numberOfHeroes = 138
 	filePathTrain  = "../dataParser/matches.csv"
 	filePathTest   = "matches-test.csv"
@@ -35,7 +37,7 @@ func train() {
 	// Создаём НС со входными нейронами (столько же входных параметров),
 	// 16 скрытыми нейронами и
 	// 2 выходными нейронами (столько же вариантов ответа)
-	nn := gonn.DefaultNetwork(numberOfHeroes*2, 16, 1, false)
+	nn := gonn.DefaultNetwork(numberOfHeroes*2, hiddenNeurons, 1, false)
 
 	// Теперь создаём "входы" - те данные, на основе которых будет обучаться НС
 	input := [][]float64{}
@@ -87,7 +89,8 @@ func train() {
 
 	// Начинаем обучать нашу НС.
 	// Количество итераций - 100000
-	nn.Train(input, output, 100000)
+	fmt.Printf("Training started with %d iterations and %d hidden neurons\n", iterations, hiddenNeurons)
+	nn.Train(input, output, iterations)
 
 	// Сохраняем готовую НС в файл.
 	gonn.DumpNN("gonn", nn)
@@ -156,7 +159,7 @@ func test() {
 			errorCounter++
 		}
 
-		fmt.Printf("%s - %s\n", predictedResult, realResult)
+		// fmt.Printf("%s - %s\n", predictedResult, realResult)
 	}
 
 	fmt.Printf("Success rate: %f\n", 1-float64(errorCounter)/float64(len(records)))
