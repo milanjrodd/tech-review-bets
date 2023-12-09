@@ -24,13 +24,14 @@ func main() {
 	defer writer.Flush()
 
 	// Write the CSV header
-	writer.Write([]string{"radiant_team", "dire_team", "radiant_win"})
+	writer.Write([]string{"match_id", "radiant_team", "dire_team", "radiant_win"})
 
 	// Set initial match ID and request limit
 	matchID := 0
 	requestLimit := time.Tick(time.Second)
 
 	for i := 0; i < 100; i++ {
+		fmt.Println("Request #", i+1, "...")
 		fmt.Println("Waiting for request limit...")
 		<-requestLimit // Wait for the request limit
 
@@ -59,11 +60,11 @@ func main() {
 			matchID = matches[len(matches)-1].MatchID
 		}
 
-		fmt.Printf("Successfully fetched %d matches", len(matches))
+		fmt.Printf("Successfully fetched %d matches\n", len(matches))
 
 		// Write the match data to the CSV file
 		for _, match := range matches {
-			writer.Write([]string{match.RadiantTeam, match.DireTeam, strconv.FormatBool(match.RadiantWin)})
+			writer.Write([]string{strconv.Itoa(match.MatchID), match.RadiantTeam, match.DireTeam, strconv.FormatBool(match.RadiantWin)})
 		}
 
 		resp.Body.Close()
