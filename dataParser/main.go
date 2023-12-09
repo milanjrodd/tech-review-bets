@@ -11,26 +11,44 @@ import (
 )
 
 func main() {
-	// Create a new CSV file
-	file, err := os.Create("data.csv")
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return
-	}
-	defer file.Close()
+	var file *os.File
 
-	// Create a CSV writer
+	// Check if data.csv exists
+	if _, err := os.Stat("data.csv"); os.IsNotExist(err) {
+		// Create a new CSV file
+		file, err := os.Create("data.csv")
+
+		if err != nil {
+			fmt.Println("Error creating file:", err)
+			return
+		}
+		defer file.Close()
+
+		// Create a CSV writer
+		writer := csv.NewWriter(file)
+		defer writer.Flush()
+
+		// Write the CSV header
+		writer.Write([]string{"match_id", "radiant_team", "dire_team", "radiant_win"})
+	} else {
+		// Open the CSV file
+		file, err = os.OpenFile("data.csv", os.O_RDWR|os.O_APPEND, os.ModeAppend)
+		if err != nil {
+			fmt.Println("Error opening file:", err)
+			return
+		}
+		defer file.Close()
+	}
+
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// Write the CSV header
-	writer.Write([]string{"match_id", "radiant_team", "dire_team", "radiant_win"})
-
 	// Set initial match ID and request limit
-	matchID := 0
+	matchID := getLatestMatchID("data.csv")
 	requestLimit := time.Tick(time.Second)
+	matchesCounter := 0
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 2; i++ {
 		fmt.Println("Request #", i+1, "...")
 		fmt.Println("Waiting for request limit...")
 		<-requestLimit // Wait for the request limit
@@ -61,8 +79,8 @@ func main() {
 		}
 
 		fmt.Printf("Successfully fetched %d matches\n", len(matches))
+		matchesCounter += len(matches)
 
-		// Write the match data to the CSV file
 		for _, match := range matches {
 			writer.Write([]string{strconv.Itoa(match.MatchID), match.RadiantTeam, match.DireTeam, strconv.FormatBool(match.RadiantWin)})
 		}
@@ -75,7 +93,7 @@ func main() {
 		}
 	}
 
-	fmt.Println("Data fetched and written to data.csv")
+	fmt.Printf("Matches fetched: %d\nOutput file: data.csv\n", matchesCounter)
 }
 
 type Match struct {
@@ -83,4 +101,27 @@ type Match struct {
 	RadiantTeam string `json:"radiant_team"`
 	DireTeam    string `json:"dire_team"`
 	RadiantWin  bool   `json:"radiant_win"`
+}
+
+func getLatestMatchID(filepath string) int {
+	file, err := os.Open(filepath)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return 0
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return 0
+	}
+
+	if len(records) > 1 {
+		latestMatchID, _ := strconv.Atoi(records[len(records)-1][0])
+		return latestMatchID
+	}
+
+	return 0
 }
