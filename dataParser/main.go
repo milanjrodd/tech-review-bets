@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,12 +13,14 @@ import (
 )
 
 const (
-	requestsLimitCounter = 2
-	filePath             = "matches.csv"
-	apiURL               = "https://api.opendota.com/api/publicMatches"
+	filePath = "matches.csv"
+	apiURL   = "https://api.opendota.com/api/publicMatches"
 )
 
 func main() {
+	requestsLimitCounter := flag.Int("req", 2, "Number of requests to make")
+	flag.Parse()
+
 	file, err := openOrCreateFile(filePath)
 	if err != nil {
 		fmt.Println("Error opening or creating file:", err)
@@ -32,7 +35,7 @@ func main() {
 	requestLimit := time.Tick(time.Second)
 	matchesCounter := 0
 
-	for i := 0; i < requestsLimitCounter; i++ {
+	for i := 0; i < *requestsLimitCounter; i++ {
 		fmt.Println("Request #", i+1, "...")
 		fmt.Println("Waiting for request limit...")
 		<-requestLimit // Wait for the request limit
