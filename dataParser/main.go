@@ -64,6 +64,7 @@ func main() {
 
 		for _, match := range matches {
 			writer.Write([]string{strconv.Itoa(match.MatchID), match.RadiantTeam, match.DireTeam, strconv.FormatBool(match.RadiantWin)})
+			writer.Flush() // Flush the writer to write the data immediately
 		}
 
 		if resp.StatusCode != http.StatusOK {
@@ -87,6 +88,7 @@ func openOrCreateFile(filePath string) (*os.File, error) {
 			defer writer.Flush()
 
 			writer.Write([]string{"match_id", "radiant_team", "dire_team", "radiant_win"})
+			writer.Flush() // Flush the writer to write the data immediately
 		} else {
 			return nil, fmt.Errorf("error opening file: %w", err)
 		}
