@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	iterations     = 1000
+	iterations     = 10000
 	hiddenNeurons  = 14
 	numberOfHeroes = 138
 	filePathTrain  = "../dataParser/matches.csv"
@@ -159,6 +159,7 @@ func test() {
 			errorCounter++
 		}
 
+		fmt.Printf("%f %s - %s\n", out[0], predictedResult, realResult)
 		// fmt.Printf("%s - %s\n", predictedResult, realResult)
 	}
 
