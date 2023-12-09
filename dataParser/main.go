@@ -4,76 +4,57 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 )
 
+const (
+	requestsLimitCounter = 2
+	filePath             = "matches.csv"
+	apiURL               = "https://api.opendota.com/api/publicMatches"
+)
+
 func main() {
-	var file *os.File
-
-	// Check if data.csv exists
-	if _, err := os.Stat("data.csv"); os.IsNotExist(err) {
-		// Create a new CSV file
-		file, err := os.Create("data.csv")
-
-		if err != nil {
-			fmt.Println("Error creating file:", err)
-			return
-		}
-		defer file.Close()
-
-		// Create a CSV writer
-		writer := csv.NewWriter(file)
-		defer writer.Flush()
-
-		// Write the CSV header
-		writer.Write([]string{"match_id", "radiant_team", "dire_team", "radiant_win"})
-	} else {
-		// Open the CSV file
-		file, err = os.OpenFile("data.csv", os.O_RDWR|os.O_APPEND, os.ModeAppend)
-		if err != nil {
-			fmt.Println("Error opening file:", err)
-			return
-		}
-		defer file.Close()
+	file, err := openOrCreateFile(filePath)
+	if err != nil {
+		fmt.Println("Error opening or creating file:", err)
+		return
 	}
+	defer file.Close()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// Set initial match ID and request limit
-	matchID := getLatestMatchID("data.csv")
+	matchID := getLatestMatchID(file)
 	requestLimit := time.Tick(time.Second)
 	matchesCounter := 0
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < requestsLimitCounter; i++ {
 		fmt.Println("Request #", i+1, "...")
 		fmt.Println("Waiting for request limit...")
 		<-requestLimit // Wait for the request limit
 
-		// Make a GET request to the API
-		var url string
-		if matchID == 0 {
-			url = "https://api.opendota.com/api/publicMatches"
-		} else {
-			url = fmt.Sprintf("https://api.opendota.com/api/publicMatches?less_than_match_id=%d", matchID)
+		url := apiURL
+		if matchID != 0 {
+			url = fmt.Sprintf("%s?less_than_match_id=%d", apiURL, matchID)
 		}
+
 		resp, err := http.Get(url)
 		if err != nil {
 			fmt.Println("Error making request:", err)
 			return
 		}
+		defer resp.Body.Close()
 
-		// Read the response body and parse the data
 		var matches []Match
 		if err := json.NewDecoder(resp.Body).Decode(&matches); err != nil {
 			fmt.Println("Error decoding response:", err)
 			return
 		}
 
-		// Update the match ID
 		if len(matches) > 0 {
 			matchID = matches[len(matches)-1].MatchID
 		}
@@ -85,15 +66,32 @@ func main() {
 			writer.Write([]string{strconv.Itoa(match.MatchID), match.RadiantTeam, match.DireTeam, strconv.FormatBool(match.RadiantWin)})
 		}
 
-		resp.Body.Close()
-
-		// Break the loop if no more matches are available
 		if resp.StatusCode != http.StatusOK {
 			break
 		}
 	}
 
-	fmt.Printf("Matches fetched: %d\nOutput file: data.csv\n", matchesCounter)
+	fmt.Printf("Matches fetched: %d\nOutput file: %s\n", matchesCounter, filePath)
+}
+
+func openOrCreateFile(filePath string) (*os.File, error) {
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_APPEND, os.ModeAppend)
+	if err != nil {
+		if os.IsNotExist(err) {
+			file, err = os.Create(filePath)
+			if err != nil {
+				return nil, fmt.Errorf("error creating file: %w", err)
+			}
+
+			writer := csv.NewWriter(file)
+			defer writer.Flush()
+
+			writer.Write([]string{"match_id", "radiant_team", "dire_team", "radiant_win"})
+		} else {
+			return nil, fmt.Errorf("error opening file: %w", err)
+		}
+	}
+	return file, nil
 }
 
 type Match struct {
@@ -103,14 +101,7 @@ type Match struct {
 	RadiantWin  bool   `json:"radiant_win"`
 }
 
-func getLatestMatchID(filepath string) int {
-	file, err := os.Open(filepath)
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return 0
-	}
-	defer file.Close()
-
+func getLatestMatchID(file io.Reader) int {
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
