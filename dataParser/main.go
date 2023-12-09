@@ -66,7 +66,22 @@ func main() {
 		matchesCounter += len(matches)
 
 		for _, match := range matches {
-			writer.Write([]string{strconv.Itoa(match.MatchID), match.RadiantTeam, match.DireTeam, strconv.FormatBool(match.RadiantWin)})
+			writer.Write([]string{
+				strconv.Itoa(match.MatchID),
+				strconv.Itoa(match.MatchSeqNum),
+				strconv.FormatBool(match.RadiantWin),
+				strconv.Itoa(match.StartTime),
+				strconv.Itoa(match.Duration),
+				fmt.Sprintf("%v", match.AvgMmr),
+				fmt.Sprintf("%v", match.NumMmr),
+				strconv.Itoa(match.LobbyType),
+				strconv.Itoa(match.GameMode),
+				strconv.Itoa(match.AvgRankTier),
+				strconv.Itoa(match.NumRankTier),
+				strconv.Itoa(match.Cluster),
+				match.RadiantTeam,
+				match.DireTeam,
+			})
 			writer.Flush() // Flush the writer to write the data immediately
 		}
 
@@ -90,7 +105,22 @@ func openOrCreateFile(filePath string) (*os.File, error) {
 			writer := csv.NewWriter(file)
 			defer writer.Flush()
 
-			writer.Write([]string{"match_id", "radiant_team", "dire_team", "radiant_win"})
+			writer.Write([]string{
+				"match_id",
+				"match_seq_num",
+				"radiant_win",
+				"start_time",
+				"duration",
+				"avg_mmr",
+				"num_mmr",
+				"lobby_type",
+				"game_mode",
+				"avg_rank_tier",
+				"num_rank_tier",
+				"cluster",
+				"radiant_team",
+				"dire_team",
+			})
 			writer.Flush() // Flush the writer to write the data immediately
 		} else {
 			return nil, fmt.Errorf("error opening file: %w", err)
@@ -99,11 +129,23 @@ func openOrCreateFile(filePath string) (*os.File, error) {
 	return file, nil
 }
 
+type Main []Match
+
 type Match struct {
-	MatchID     int    `json:"match_id"`
-	RadiantTeam string `json:"radiant_team"`
-	DireTeam    string `json:"dire_team"`
-	RadiantWin  bool   `json:"radiant_win"`
+	MatchID     int         `json:"match_id"`
+	MatchSeqNum int         `json:"match_seq_num"`
+	RadiantWin  bool        `json:"radiant_win"`
+	StartTime   int         `json:"start_time"`
+	Duration    int         `json:"duration"`
+	AvgMmr      interface{} `json:"avg_mmr"`
+	NumMmr      interface{} `json:"num_mmr"`
+	LobbyType   int         `json:"lobby_type"`
+	GameMode    int         `json:"game_mode"`
+	AvgRankTier int         `json:"avg_rank_tier"`
+	NumRankTier int         `json:"num_rank_tier"`
+	Cluster     int         `json:"cluster"`
+	RadiantTeam string      `json:"radiant_team"`
+	DireTeam    string      `json:"dire_team"`
 }
 
 func getLatestMatchID(file io.Reader) int {
