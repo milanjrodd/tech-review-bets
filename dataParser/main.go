@@ -17,6 +17,9 @@ const (
 	apiURL   = "https://api.opendota.com/api/publicMatches"
 )
 
+// TODO: Add heroStats parser
+// https://api.opendota.com/api/heroStats
+
 func main() {
 	requestsLimitCounter := flag.Int("req", 2, "Number of requests to make")
 	flag.Parse()
