@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	iterations     = 10000
-	hiddenNeurons  = 14
-	numberOfHeroes = 138
-	filePathTrain  = "../dataParser/matches.csv"
-	filePathTest   = "matches-test.csv"
+	iterations      = 10000
+	hiddenNeurons   = 14
+	numberOfHeroes  = 138
+	filePathTrain   = "data/matches_v0.csv"
+	filePathTest    = "data/matches-test_v0.csv"
+	filePathNetwork = "networks/gonn_v0"
 )
 
 func train() {
@@ -98,7 +99,7 @@ func train() {
 
 func test() {
 	// Загружем НС из файла.
-	nn := gonn.LoadNN("gonn")
+	nn := gonn.LoadNN(filePathNetwork)
 
 	file, err := os.Open(filePathTest)
 	if err != nil {
@@ -158,11 +159,10 @@ func test() {
 		if predictedResult != realResult {
 			errorCounter++
 		}
-
-		fmt.Printf("%f %s - %s\n", out[0], predictedResult, realResult)
-		// fmt.Printf("%s - %s\n", predictedResult, realResult)
 	}
 
+	fmt.Printf("Total: %d\n", len(records)-1)
+	fmt.Printf("Errors: %d\n", errorCounter)
 	fmt.Printf("Success rate: %f\n", 1-float64(errorCounter)/float64(len(records)))
 }
 
@@ -185,6 +185,6 @@ func GetResult(output []float64) string {
 }
 
 func main() {
-	train()
+	// train()
 	test()
 }
