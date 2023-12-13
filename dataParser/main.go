@@ -8,7 +8,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -21,7 +23,8 @@ const (
 // https://api.opendota.com/api/heroStats
 
 func main() {
-	requestsLimitCounter := flag.Int("req", 2, "Number of requests to make")
+	requestsLimitCounter := flag.Int("req", 100, "Number of requests to make")
+	dataRowsLimitCounter := flag.Int("rows", -1, "Number of data rows to fetch")
 	flag.Parse()
 
 	file, err := openOrCreateFile(filePath)
@@ -38,8 +41,17 @@ func main() {
 	requestLimit := time.Tick(time.Second)
 	matchesCounter := 0
 
-	for i := 0; i < *requestsLimitCounter; i++ {
-		fmt.Println("Request #", i+1, "...")
+	loopBreaker := *requestsLimitCounter
+	if *dataRowsLimitCounter > *requestsLimitCounter {
+		loopBreaker = *dataRowsLimitCounter
+	}
+
+	for i := 0; i < loopBreaker; i++ {
+		if *dataRowsLimitCounter >= 0 && matchesCounter >= *dataRowsLimitCounter {
+			break
+		}
+
+		fmt.Println("\nRequest #", i+1, "...")
 		fmt.Println("Waiting for request limit...")
 		<-requestLimit // Wait for the request limit
 
@@ -65,10 +77,24 @@ func main() {
 			matchID = matches[len(matches)-1].MatchID
 		}
 
-		fmt.Printf("Successfully fetched %d matches\n", len(matches))
-		matchesCounter += len(matches)
+		fmt.Printf("Fetched %d matches\n", len(matches))
+
+		_matchesCounter := 0
 
 		for _, match := range matches {
+			invalidGameModes := []int{22, 1}
+			invalidLobbyTypes := []int{2, 5, 6, 7}
+
+			hasNotTenPlayers := len(strings.Split(match.RadiantTeam, ",")) != 5 || len(strings.Split(match.DireTeam, ",")) != 5
+			isIncorrectGameMode := !slices.Contains(invalidGameModes, match.GameMode)
+			isIncorrectLobbyType := !slices.Contains(invalidLobbyTypes, match.LobbyType)
+			isIncorrectRankTier := match.AvgRankTier < 10 || match.AvgRankTier > 89
+
+			if hasNotTenPlayers || isIncorrectGameMode || isIncorrectLobbyType || isIncorrectRankTier {
+				continue
+			}
+			_matchesCounter += 1
+
 			writer.Write([]string{
 				strconv.Itoa(match.MatchID),
 				strconv.Itoa(match.MatchSeqNum),
@@ -88,12 +114,16 @@ func main() {
 			writer.Flush() // Flush the writer to write the data immediately
 		}
 
+		fmt.Printf("Added %d matches\n", _matchesCounter)
+		matchesCounter += _matchesCounter
+		fmt.Printf("Total matches: %d\n", matchesCounter)
+
 		if resp.StatusCode != http.StatusOK {
 			break
 		}
 	}
 
-	fmt.Printf("Matches fetched: %d\nOutput file: %s\n", matchesCounter, filePath)
+	fmt.Printf("\nMatches added: %d\nOutput file: %s\n", matchesCounter, filePath)
 }
 
 func openOrCreateFile(filePath string) (*os.File, error) {
