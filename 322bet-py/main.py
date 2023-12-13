@@ -68,6 +68,7 @@ def main():
         torch.nn.Linear(10, 2),
         torch.nn.ReLU(),
         torch.nn.Linear(2, output_shape)
+        torch.nn.Sigmoid()
     ).to(tensor_device)
 
     summary(model, (input_shape,), batch_size=batch_size, device=device)
