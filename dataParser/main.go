@@ -38,7 +38,7 @@ func main() {
 	defer writer.Flush()
 
 	matchID := getLatestMatchID(file)
-	requestLimit := time.Tick(time.Second)
+	requestLimit := time.Tick(time.Duration(1100 * time.Millisecond))
 	matchesCounter := 0
 
 	loopBreaker := *requestsLimitCounter
