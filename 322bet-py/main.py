@@ -28,7 +28,7 @@ def main():
     def mapHeroIdsToWinrates(ids: str, rank: int) -> list[float]:
         return list([getHeroWinrate(heroId=int(id), rank=rank) for id in ids.split(',')])
 
-    matches = pd.read_csv("../dataParser/matches.csv").head(1500)
+    matches = pd.read_csv("../dataParser/matches.csv")
 
     # Normalize and merge data
     matches['radiant_win'] += 0
@@ -67,7 +67,7 @@ def main():
         torch.nn.ReLU(),
         torch.nn.Linear(10, 2),
         torch.nn.ReLU(),
-        torch.nn.Linear(2, output_shape)
+        torch.nn.Linear(2, output_shape),
         torch.nn.Sigmoid()
     ).to(tensor_device)
 
@@ -81,7 +81,7 @@ def main():
     loss = torch.nn.BCELoss()
 
     # Epochs
-    epochs = 500
+    epochs = 1000
 
     # Step 3. Train model
     print("Start train")
