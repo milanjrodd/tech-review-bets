@@ -75,7 +75,8 @@ def main():
 
     # Adam optimizer
     optimizer = torch.optim.Adam(
-        model.parameters(), lr=1e-3, betas=(0.9, 0.99))
+        model.parameters(), lr=0.1, betas=(0.9, 0.99))
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
     # mean squared error
     loss = torch.nn.BCELoss()
@@ -114,6 +115,7 @@ def main():
 
             loss_value.backward()
             optimizer.step()
+            scheduler.step(loss_value)
 
             # Break if trained
             if loss_value_item < 0.001:
