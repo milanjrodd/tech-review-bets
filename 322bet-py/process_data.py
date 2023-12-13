@@ -5,7 +5,10 @@ from parallel_pandas import ParallelPandas
 # initialize parallel-pandas
 ParallelPandas.initialize(n_cpu=8, split_factor=4, disable_pr_bar=False)
 
-def process_data():
+path_to_save: str = ""
+
+def process_matches(path: str):
+  path_to_save = path
   # Get the current working directory
   data_parser_dir = os.path.join(os.getcwd(), 'dataParser')
   project_dir = os.path.join(os.getcwd(), '322bet-py')
@@ -38,7 +41,7 @@ def process_data():
 
   print(df.head())
   # Save the dataframe to a CSV file
-  df.to_csv(os.path.join(project_dir, 'data', 'matches_processed.csv'), index=False)
+  df.to_csv(path_to_save, index=False)
 
 if __name__ == "__main__":
-    process_data()
+    process_matches(path_to_save)

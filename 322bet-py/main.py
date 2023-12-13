@@ -6,70 +6,33 @@ import numpy
 import matplotlib.pyplot as plt
 from torchsummary import summary
 from datetime import datetime
-from parallel_pandas import ParallelPandas
 from pathlib import Path
-
-# initialize parallel-pandas
-ParallelPandas.initialize(n_cpu=8, split_factor=4, disable_pr_bar=False)
-
-
-class HalfSummarizer(nn.Module):
-    def __init__(self, input_size, output_size):
-        super(HalfSummarizer, self).__init__()
-        self.output_size = output_size
-        self.linear1 = nn.Linear(input_size // 2, output_size // 2)
-        self.linear2 = nn.Linear(input_size // 2, output_size // 2)
-
-    def forward(self, x):
-        half_size = x.size(1) // 2
-        x1, x2 = torch.chunk(x, 2, dim=1)  # Split input into two halves
-        x1 = self.linear1(x1)
-        x2 = self.linear2(x2)
-        return torch.cat([x1, x2], dim=1)
-
+import process_data
 
 def main():
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = 'cpu'
     tensor_device = torch.device(device)
     torch.set_default_device(device=device)
+    
     # Read mathes data
+    process_matches_path = os.path.join(os.getcwd(), '322bet-py','data','matches_processed.csv')
 
-    heroesPath = os.path.join(os.getcwd(), 'dataParser/heroes.json')
-    heroes = pd.read_json(heroesPath).set_index("id")
+    if not Path(process_matches_path).exists():
+        process_data.process_matches(process_matches_path)
 
-    def getHeroWinrate(heroId: int, rank: int) -> float:
-        heroPicks, heroWins = heroes.loc[heroId][[
-            f'{rank}_pick', f'{rank}_win']]
-        heroWinRate = heroWins / heroPicks
-        return round(heroWinRate, 5)
-
-    def mapHeroIdsToWinrates(ids: str, rank: int) -> list[float]:
-        return list([getHeroWinrate(heroId=int(id), rank=rank) for id in ids.split(',')])
-
-    matchesPath = os.path.join(os.getcwd(), 'dataParser/matches.csv')
-    matches = pd.read_csv(matchesPath).head(150000)
-
-    # Normalize and merge data
-    matches['radiant_win'] += 0
-    matches['radiant_heroes_winrates'] = matches.p_apply(lambda x: mapHeroIdsToWinrates(
-        x['radiant_team'], x['avg_rank_tier']//10), axis=1) # type: ignore
-    matches['dire_heroes_winrates'] = matches.p_apply(lambda x: mapHeroIdsToWinrates(
-        x['dire_team'], x['avg_rank_tier']//10), axis=1) # type: ignore
+    matches = pd.read_csv(process_matches_path).head(1000)
 
     testDataCount = len(matches)//4
-    trainData = matches.head(-testDataCount)
-    testData = matches.tail(testDataCount)
 
-    data_train_input = (trainData['radiant_heroes_winrates'] +
-                        trainData['dire_heroes_winrates']).to_numpy()
-    data_train_output = [[i] for i in trainData['radiant_win'].to_numpy()]
+    trainData  = matches.head(-testDataCount)
+    tensor_train_input = torch.from_numpy(trainData[['radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate', 'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate']].to_numpy()).to(torch.float32)
+    data_train_output = trainData['radiant_win'].to_numpy()
+    tensor_train_output = torch.tensor([[i] for i in data_train_output]).to(torch.float32)
 
-    # Convert to tensor
-    tensor_train_input = torch.tensor(list(data_train_input)).to(
-        torch.float32).to(tensor_device)
-    tensor_train_output = torch.tensor(list(data_train_output)).to(
-        torch.float32).to(tensor_device)
+    testData =  matches.tail(testDataCount)
+    tensor_test_input = torch.from_numpy(testData[['radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate', 'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate']].to_numpy()).to(torch.float32)
+    data_test_output = testData['radiant_win'].to_numpy()
 
     print("Input:\n", tensor_train_input)
     print("Shape:\n", tensor_train_input.shape)
@@ -83,9 +46,7 @@ def main():
     batch_size = 15000
 
     model = torch.nn.Sequential(
-        torch.nn.Linear(input_shape, 10),
-        torch.nn.ReLU(),
-        torch.nn.Linear(10, 2),
+        torch.nn.Linear(input_shape, 2),
         torch.nn.ReLU(),
         torch.nn.Linear(2, output_shape),
         torch.nn.Sigmoid()
@@ -95,10 +56,9 @@ def main():
 
     # Adam optimizer
     optimizer = torch.optim.Adam(
-        model.parameters(), lr=5e-2, betas=(0.9, 0.99))
+        model.parameters(), lr=3e-3, betas=(0.9, 0.99))
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
-    # mean squared error
     loss = torch.nn.BCELoss()
 
     # Epochs
@@ -138,10 +98,10 @@ def main():
             optimizer.step()
             scheduler.step(loss_value)
 
-            # Break if trained
-            if loss_value_item < 0.1:
-                trained = True
-                break
+            # # Break if trained
+            # if loss_value_item < 0.1:
+            #     trained = True
+            #     break
 
         # Debug output
         if epoch % 100 == 0:
@@ -153,16 +113,9 @@ def main():
     # Step 4. Control nn
     print("Control")
 
-    data_test_input = (testData['radiant_heroes_winrates'] +
-                       testData['dire_heroes_winrates']).to_numpy()
-    data_test_output = testData['radiant_win'].to_numpy()
+    print("Shape:", tensor_test_input.shape)
 
-    tensor_train_input = torch.tensor(list(data_test_input)).to(
-        torch.float32).to(tensor_device)
-
-    print("Shape:", tensor_train_input.shape)
-
-    answer = model(tensor_train_input)
+    answer = model(tensor_test_input)
 
     errors = 0
 
@@ -172,6 +125,8 @@ def main():
         if predicted != real:
             errors += 1
 
+#print rate of radiants win in test data
+    print('Test radiants winrate: ', (sum(data_test_output)/len(data_test_output))*100, '%')
     print('Success rate: ', (1-(errors/testDataCount))*100, '%')
     plt.plot(history)
     plt.title('Loss')
@@ -180,5 +135,4 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
-    main()
+main()
