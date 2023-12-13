@@ -152,6 +152,8 @@ def main():
     print('Success rate: ', (1-(errors/testDataCount))*100, '%')
     plt.plot(history)
     plt.title('Loss')
+    plt.savefig(
+        f'graphs/history-{datetime.now().strftime("%d-%m-%Y-%H-%M-%S")}.png')
     plt.show()
 
 
