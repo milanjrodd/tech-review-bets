@@ -12,16 +12,6 @@ from pathlib import Path
 ParallelPandas.initialize(n_cpu=12, split_factor=4, disable_pr_bar=False)
 
 
-class myCustomLinearLayer(nn.Module):
-    def __init__(self, in_size, out_size):
-        super().__init__()
-        self.weights = nn.Parameter(torch.randn(in_size, out_size))
-        self.bias = nn.Parameter(torch.zeros(out_size))
-
-    def forward(self, x):
-        return x.mm(self.weights) + self.bias
-
-
 class HalfSummarizer(nn.Module):
     def __init__(self, input_size, output_size):
         super(HalfSummarizer, self).__init__()
@@ -32,7 +22,8 @@ class HalfSummarizer(nn.Module):
     def forward(self, x):
         half_size = x.size(1) // 2
         x1, x2 = torch.chunk(x, 2, dim=1)  # Split input into two halves
-
+        x1 = self.linear1(x1)
+        x2 = self.linear2(x2)
         return torch.cat([x1, x2], dim=1)
 
 
@@ -90,8 +81,8 @@ def main():
     model = torch.nn.Sequential(
         torch.nn.Linear(input_shape, 10),
         torch.nn.ReLU(),
-        torch.nn.Linear(10, 2),
-        torch.nn.Tanh(),
+        HalfSummarizer(10, 2),
+        torch.nn.Relu(),
         torch.nn.Linear(2, 2),
         torch.nn.ReLU(),
         torch.nn.Linear(2, output_shape),
