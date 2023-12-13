@@ -1,5 +1,6 @@
 import pandas as pd
 import torch
+import torch.nn as nn
 import numpy
 import matplotlib.pyplot as plt
 from torchsummary import summary
@@ -9,6 +10,30 @@ from pathlib import Path
 
 # initialize parallel-pandas
 ParallelPandas.initialize(n_cpu=12, split_factor=4, disable_pr_bar=False)
+
+
+class myCustomLinearLayer(nn.Module):
+    def __init__(self, in_size, out_size):
+        super().__init__()
+        self.weights = nn.Parameter(torch.randn(in_size, out_size))
+        self.bias = nn.Parameter(torch.zeros(out_size))
+
+    def forward(self, x):
+        return x.mm(self.weights) + self.bias
+
+
+class HalfSummarizer(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(HalfSummarizer, self).__init__()
+        self.output_size = output_size
+        self.linear1 = nn.Linear(input_size // 2, output_size // 2)
+        self.linear2 = nn.Linear(input_size // 2, output_size // 2)
+
+    def forward(self, x):
+        half_size = x.size(1) // 2
+        x1, x2 = torch.chunk(x, 2, dim=1)  # Split input into two halves
+
+        return torch.cat([x1, x2], dim=1)
 
 
 def main():
@@ -66,6 +91,8 @@ def main():
         torch.nn.Linear(input_shape, 10),
         torch.nn.ReLU(),
         torch.nn.Linear(10, 2),
+        torch.nn.Tanh(),
+        torch.nn.Linear(2, 2),
         torch.nn.ReLU(),
         torch.nn.Linear(2, output_shape),
         torch.nn.Sigmoid()
@@ -75,7 +102,7 @@ def main():
 
     # Adam optimizer
     optimizer = torch.optim.Adam(
-        model.parameters(), lr=0.1, betas=(0.9, 0.99))
+        model.parameters(), lr=1e-2, betas=(0.9, 0.99))
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
     # mean squared error
@@ -98,6 +125,7 @@ def main():
             break
 
         permutation = torch.randperm(tensor_train_input.size()[0])
+        loss_value_item = 0
 
         for i in range(0, tensor_train_input.size()[0], batch_size):
             optimizer.zero_grad()
@@ -118,14 +146,14 @@ def main():
             scheduler.step(loss_value)
 
             # Break if trained
-            if loss_value_item < 0.001:
+            if loss_value_item < 0.1:
                 trained = True
                 break
 
-            # Debug output
-            if epoch % 100 == 0:
-                print(
-                    f"{datetime.now().time()} {epoch+1},\t loss: {loss_value_item:.7f}")
+        # Debug output
+        if epoch % 100 == 0:
+            print(
+                f"{datetime.now().time()} {epoch+1},\t loss: {loss_value_item:.7f}")
             if device == 'cuda':
                 torch.cuda.empty_cache()
 
