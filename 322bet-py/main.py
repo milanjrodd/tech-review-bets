@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -9,7 +10,7 @@ from parallel_pandas import ParallelPandas
 from pathlib import Path
 
 # initialize parallel-pandas
-ParallelPandas.initialize(n_cpu=12, split_factor=4, disable_pr_bar=False)
+ParallelPandas.initialize(n_cpu=8, split_factor=4, disable_pr_bar=False)
 
 
 class HalfSummarizer(nn.Module):
@@ -29,12 +30,13 @@ class HalfSummarizer(nn.Module):
 
 def main():
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    device = 'cuda'
+    device = 'cpu'
     tensor_device = torch.device(device)
     torch.set_default_device(device=device)
     # Read mathes data
 
-    heroes = pd.read_json("../dataParser/heroes.json").set_index("id")
+    heroesPath = os.path.join(os.getcwd(), 'dataParser/heroes.json')
+    heroes = pd.read_json(heroesPath).set_index("id")
 
     def getHeroWinrate(heroId: int, rank: int) -> float:
         heroPicks, heroWins = heroes.loc[heroId][[
@@ -45,14 +47,15 @@ def main():
     def mapHeroIdsToWinrates(ids: str, rank: int) -> list[float]:
         return list([getHeroWinrate(heroId=int(id), rank=rank) for id in ids.split(',')])
 
-    matches = pd.read_csv("../dataParser/matches.csv").head(100000)
+    matchesPath = os.path.join(os.getcwd(), 'dataParser/matches.csv')
+    matches = pd.read_csv(matchesPath).head(150000)
 
     # Normalize and merge data
     matches['radiant_win'] += 0
     matches['radiant_heroes_winrates'] = matches.p_apply(lambda x: mapHeroIdsToWinrates(
-        x['radiant_team'], x['avg_rank_tier']//10), axis=1)
+        x['radiant_team'], x['avg_rank_tier']//10), axis=1) # type: ignore
     matches['dire_heroes_winrates'] = matches.p_apply(lambda x: mapHeroIdsToWinrates(
-        x['dire_team'], x['avg_rank_tier']//10), axis=1)
+        x['dire_team'], x['avg_rank_tier']//10), axis=1) # type: ignore
 
     testDataCount = len(matches)//4
     trainData = matches.head(-testDataCount)
@@ -172,8 +175,8 @@ def main():
     print('Success rate: ', (1-(errors/testDataCount))*100, '%')
     plt.plot(history)
     plt.title('Loss')
-    plt.savefig(
-        f'graphs/history-{datetime.now().strftime("%d-%m-%Y-%H-%M-%S")}.png')
+    graphPath = os.path.join(os.getcwd(), f'322bet-py/graphs/history-{datetime.now().strftime("%d-%m-%Y-%H-%M-%S")}.png')
+    plt.savefig(graphPath)
     plt.show()
 
 
