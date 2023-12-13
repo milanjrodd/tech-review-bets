@@ -29,8 +29,9 @@ class HalfSummarizer(nn.Module):
 
 def main():
     # device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    device = 'cpu'
+    device = 'cuda'
     tensor_device = torch.device(device)
+    torch.set_default_device(device=device)
     # Read mathes data
 
     heroes = pd.read_json("../dataParser/heroes.json").set_index("id")
@@ -44,7 +45,7 @@ def main():
     def mapHeroIdsToWinrates(ids: str, rank: int) -> list[float]:
         return list([getHeroWinrate(heroId=int(id), rank=rank) for id in ids.split(',')])
 
-    matches = pd.read_csv("../dataParser/matches.csv")
+    matches = pd.read_csv("../dataParser/matches.csv").head(100000)
 
     # Normalize and merge data
     matches['radiant_win'] += 0
@@ -81,9 +82,7 @@ def main():
     model = torch.nn.Sequential(
         torch.nn.Linear(input_shape, 10),
         torch.nn.ReLU(),
-        HalfSummarizer(10, 2),
-        torch.nn.Relu(),
-        torch.nn.Linear(2, 2),
+        torch.nn.Linear(10, 2),
         torch.nn.ReLU(),
         torch.nn.Linear(2, output_shape),
         torch.nn.Sigmoid()
@@ -93,7 +92,7 @@ def main():
 
     # Adam optimizer
     optimizer = torch.optim.Adam(
-        model.parameters(), lr=1e-2, betas=(0.9, 0.99))
+        model.parameters(), lr=5e-2, betas=(0.9, 0.99))
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
     # mean squared error
