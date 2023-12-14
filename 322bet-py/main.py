@@ -19,9 +19,11 @@ def main():
     process_matches_path = os.path.join(os.getcwd(), '322bet-py','data','matches_processed.csv')
 
     if not Path(process_matches_path).exists():
-        process_data.process_matches(process_matches_path)
-
-    matches = pd.read_csv(process_matches_path).head(1000)
+        matches = process_data.process_matches(process_matches_path)
+    else:
+        matches = pd.read_csv(process_matches_path)
+    
+    matches = matches.head(1000)
 
     testDataCount = len(matches)//4
 
@@ -40,7 +42,6 @@ def main():
     print("Shape:\n", tensor_train_output.shape)
 
     # Step 2. Create model
-
     input_shape = 10
     output_shape = 1
     batch_size = 15000
@@ -135,4 +136,5 @@ def main():
     plt.show()
 
 
-main()
+if __name__ == "__main__":
+    main()
