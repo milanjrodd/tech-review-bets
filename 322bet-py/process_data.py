@@ -14,7 +14,7 @@ def process_matches(path: str):
   heroes_path = os.path.join(data_parser_dir, 'heroes.json')
   
   # Read the CSV file
-  matches = pd.read_csv(matches_path)
+  matches = pd.read_csv(matches_path).head(160000)
   heroes = pd.read_json(heroes_path).set_index('id')
 
   df = pd.DataFrame(columns=['match_id', 'radiant_win', 'radiant_hero_1', 'radiant_hero_2', 'radiant_hero_3', 'radiant_hero_4', 'radiant_hero_5', 'dire_hero_1', 'dire_hero_2', 'dire_hero_3', 'dire_hero_4', 'dire_hero_5', 'avg_rank_tier', 'radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate', 'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate'])
@@ -22,7 +22,7 @@ def process_matches(path: str):
   # Add data to the dataframe using pandas library
 
   df['match_id'] = matches['match_id']
-  df['avg_rank_tier'] = matches['avg_rank_tier']
+  df['avg_rank_tier'] = matches['avg_rank_tier']/100
   df['radiant_win'] = matches['radiant_win'] + 0
 
   for i in range(1, 6):
