@@ -3,4 +3,4 @@ node_modules
 322bet-py/graphs/*.png
 322bet-py/data/*.csv
 322bet-py/main.py
-322bet-py/__pycache__/process_data.cpython-310.pyc
+**/__pycache__
