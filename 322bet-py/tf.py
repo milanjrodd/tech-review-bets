@@ -58,5 +58,5 @@ print("Evaluate on test data")
 model.evaluate(tensor_test_input, data_test_output)
 
 # Save model
-model.save(os.path.join(os.getcwd(), '322bet-py','models','model.keras'))
+model.save(os.path.join(os.getcwd(), '322bet-py','models','model_lts.keras'))
 print("Saved model to disk")
