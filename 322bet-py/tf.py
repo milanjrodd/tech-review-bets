@@ -25,22 +25,22 @@ def main():
     trainData  = matches.head(-testDataCount)
     tensor_train_input = tf.convert_to_tensor(trainData[['radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate', 'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate', 'avg_rank_tier']].to_numpy(), np.float32, name='train_input')
     data_train_output = trainData['radiant_win'].to_numpy()
-    tensor_train_output = tf.convert_to_tensor([[i, 1-i] for i in data_train_output], np.float32, name='train_output')
+    tensor_train_output = tf.convert_to_tensor([[i] for i in data_train_output], np.float32, name='train_output')
 
     testData =  matches.tail(testDataCount)
     tensor_test_input = tf.convert_to_tensor(testData[['radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate', 'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate', 'avg_rank_tier']].to_numpy(), np.float32, name='test_input')
-    data_test_output = np.array([[i, 1-i] for i in testData['radiant_win'].to_numpy()])
+    data_test_output = np.array([[i] for i in testData['radiant_win'].to_numpy()])
 
     # Define Sequential model with 2 layers
     model = keras.Sequential(
         [
-            layers.Dense(256, activation="tanh", name="input"),
-            layers.Dense(128, activation="tanh", name="hidden1"),
-            layers.Dense(2, activation="softmax", name="output"),
+            layers.Dense(128, activation="relu", name="input"),
+            layers.Dense(64, activation="relu", name="hidden1"),
+            layers.Dense(1, activation="sigmoid" ,name="output"),
         ]
     )
 
-    model.compile(optimizer='adam', loss=keras.losses.MeanSquaredError(), metrics=['accuracy'])
+    model.compile(optimizer='adam', loss=keras.losses.BinaryCrossentropy(), metrics=['accuracy'])
 
     checkpoint_filepath = '/tmp/checkpoint'
     model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
