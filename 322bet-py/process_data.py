@@ -4,10 +4,10 @@ import pathlib
 from parallel_pandas import ParallelPandas
 
 # initialize parallel-pandas
-ParallelPandas.initialize(n_cpu=8, split_factor=4, disable_pr_bar=False)
+ParallelPandas.initialize(n_cpu=8, disable_pr_bar=False)
 
 
-def process_matches(path: str | pathlib.Path):
+def process_matches(path: str | pathlib.Path | pathlib.PurePath):
     # Get the current working directory
     data_parser_dir = pathlib.Path("../dataParser")
 

@@ -12,8 +12,7 @@ def get_one_hot_heroes_tensor(targets: pd.DataFrame, nb_classes: int):
     import tensorflow as tf
 
     one_hot_mask = np.eye(nb_classes)
-    one_hot_heroes = one_hot_mask[targets[['radiant_hero_1', 'radiant_hero_2', 'radiant_hero_3', 'radiant_hero_4',
-                                           'radiant_hero_5', 'dire_hero_1', 'dire_hero_2', 'dire_hero_3', 'dire_hero_4', 'dire_hero_5']].to_numpy()]
+    one_hot_heroes = one_hot_mask[targets[['radiant_hero_1', 'radiant_hero_2', 'radiant_hero_3', 'radiant_hero_4', 'radiant_hero_5', 'dire_hero_1', 'dire_hero_2', 'dire_hero_3', 'dire_hero_4', 'dire_hero_5']].to_numpy()]
     one_hot_heroes = one_hot_heroes.reshape(len(targets), nb_classes*10)
     one_hot_heroes_tensor = tf.convert_to_tensor(
         one_hot_heroes, np.float32, name='one_hot_heroes')
@@ -25,11 +24,12 @@ def main():
 
     physical_devices = tf.config.list_physical_devices('GPU')
     print('CONFIG', physical_devices)
-    tf.config.set_logical_device_configuration(
-        physical_devices[0], [tf.config.LogicalDeviceConfiguration(memory_limit=5600)])
+    if (len(physical_devices) > 0):
+        tf.config.set_logical_device_configuration(physical_devices[0], [tf.config.LogicalDeviceConfiguration(memory_limit=5600)])
 
     # Read mathes data
-    process_matches_path = Path('data/matches_processed.csv')
+    process_matches_path = Path('./data/matches_processed.csv')
+    print(process_matches_path)
 
     if not Path(process_matches_path).exists():
         matches = process_data.process_matches(process_matches_path)
@@ -41,8 +41,7 @@ def main():
     testDataCount = len(matches)//4
 
     trainData = matches.head(-testDataCount)
-    tensor_train_input = tf.convert_to_tensor(trainData[['radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate',
-                                              'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate', 'avg_rank_tier']].to_numpy(), np.float32, name='train_input')
+    tensor_train_input = tf.convert_to_tensor(trainData[['radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate', 'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate', 'avg_rank_tier']].to_numpy(), np.float32, name='train_input')
     one_hot_heroes_tensor_train = get_one_hot_heroes_tensor(trainData, 140)
     # tensor_train_input = tf.concat(
     #     [tensor_train_input, one_hot_heroes_tensor_train], 1)
@@ -51,8 +50,7 @@ def main():
         [[i] for i in data_train_output], np.float32, name='train_output')
 
     testData = matches.tail(testDataCount)
-    tensor_test_input = tf.convert_to_tensor(testData[['radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate',
-                                                       'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate', 'avg_rank_tier']].to_numpy(), np.float32, name='test_input')
+    tensor_test_input = tf.convert_to_tensor(testData[['radiant_hero_1_winrate', 'radiant_hero_2_winrate', 'radiant_hero_3_winrate', 'radiant_hero_4_winrate', 'radiant_hero_5_winrate', 'dire_hero_1_winrate', 'dire_hero_2_winrate', 'dire_hero_3_winrate', 'dire_hero_4_winrate', 'dire_hero_5_winrate', 'avg_rank_tier']].to_numpy(), np.float32, name='test_input')
     one_hot_heroes_tensor_test = get_one_hot_heroes_tensor(testData, 140)
     # tensor_test_input = tf.concat(
     #     [tensor_test_input, one_hot_heroes_tensor_test], 1)
