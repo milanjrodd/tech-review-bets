@@ -18,7 +18,7 @@ from torchsummary import summary
 
 # Detect device for tensor
 # cpu or cuda
-device = 'cuda'
+device = "cuda"
 # device = 'cuda' if torch.cuda.is_available() else 'cpu'
 tensor_device = torch.device(device)
 
@@ -37,10 +37,8 @@ tensor_train_x = list(map(lambda item: item["in"], data_train))
 tensor_train_y = list(map(lambda item: item["out"], data_train))
 
 # Convert to tensor
-tensor_train_x = torch.tensor(tensor_train_x).to(
-    torch.float32).to(tensor_device)
-tensor_train_y = torch.tensor(tensor_train_y).to(
-    torch.float32).to(tensor_device)
+tensor_train_x = torch.tensor(tensor_train_x).to(torch.float32).to(tensor_device)
+tensor_train_y = torch.tensor(tensor_train_y).to(torch.float32).to(tensor_device)
 
 print("Input:\n", tensor_train_x)
 print("Shape:\n", tensor_train_x.shape)
@@ -83,7 +81,6 @@ history = []
 model = model.to(tensor_device)
 
 for i in range(epochs):
-
     # Model result
     model_res = model(tensor_train_x)
 
@@ -109,7 +106,7 @@ for i in range(epochs):
     if i % 100 == 0:
         print(f"{dt.now().time()} {i+1},\t loss: {loss_value_item:.7f}")
 
-    if device == 'cuda':
+    if device == "cuda":
         torch.cuda.empty_cache()
 
 
@@ -117,8 +114,8 @@ for i in range(epochs):
 
 
 plt.plot(history)
-plt.title('Loss')
-plt.savefig('xor_torch.png')
+plt.title("Loss")
+plt.savefig("xor_torch.png")
 plt.show()
 
 
