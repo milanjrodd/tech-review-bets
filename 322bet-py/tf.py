@@ -23,13 +23,12 @@ def main():
     import tensorflow as tf
 
     physical_devices = tf.config.list_physical_devices('GPU')
-    print('CONFIG', physical_devices)
     if (len(physical_devices) > 0):
+        print('GPU Available', physical_devices)
         tf.config.set_logical_device_configuration(physical_devices[0], [tf.config.LogicalDeviceConfiguration(memory_limit=5600)])
 
     # Read mathes data
     process_matches_path = Path('./data/matches_processed.csv')
-    print(process_matches_path)
 
     if not Path(process_matches_path).exists():
         matches = process_data.process_matches(process_matches_path)
