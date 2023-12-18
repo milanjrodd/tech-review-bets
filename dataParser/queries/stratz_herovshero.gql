@@ -1,0 +1,16 @@
+{
+  heroStats {
+    heroVsHeroMatchup(heroId: 22, bracketBasicIds: DIVINE_IMMORTAL) {
+      advantage {
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+  }
+}

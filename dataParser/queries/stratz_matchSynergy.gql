@@ -1,0 +1,154 @@
+query getMatchSynergy(
+  $mmr: [RankBracketBasicEnum] = [
+    UNCALIBRATED
+    HERALD_GUARDIAN
+    CRUSADER_ARCHON
+    LEGEND_ANCIENT
+    DIVINE_IMMORTAL
+    FILTERED
+    ALL
+  ]
+  $r1: Short!
+  $r2: Short!
+  $r3: Short!
+  $r4: Short!
+  $r5: Short!
+  $d1: Short!
+  $d2: Short!
+  $d3: Short!
+  $d4: Short!
+  $d5: Short!
+) {
+  heroStats {
+    r1: heroVsHeroMatchup(heroId: $r1, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    r2: heroVsHeroMatchup(heroId: $r2, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    r3: heroVsHeroMatchup(heroId: $r3, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    r4: heroVsHeroMatchup(heroId: $r4, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    r5: heroVsHeroMatchup(heroId: $r5, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    d1: heroVsHeroMatchup(heroId: $d1, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    d2: heroVsHeroMatchup(heroId: $d2, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    d3: heroVsHeroMatchup(heroId: $d3, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    d4: heroVsHeroMatchup(heroId: $d4, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+    d5: heroVsHeroMatchup(heroId: $d5, bracketBasicIds: $mmr) {
+      advantage {
+        heroId
+        with {
+          heroId2
+          synergy
+        }
+        vs {
+          heroId2
+          synergy
+        }
+      }
+    }
+  }
+}

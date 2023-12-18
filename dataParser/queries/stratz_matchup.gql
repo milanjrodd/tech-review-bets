@@ -1,0 +1,15 @@
+{
+  heroStats {
+    matchUp(heroIds: [1, 33], bracketBasicIds: DIVINE_IMMORTAL) {
+      heroId
+      with {
+        heroId2
+        synergy
+      }
+      vs {
+        heroId2
+        synergy
+      }
+    }
+  }
+}
