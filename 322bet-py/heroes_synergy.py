@@ -92,11 +92,11 @@ for i in heroes_to_fetch:
 
             for l, advantage in enumerate(advantages):
                 synergiesWith = {
-                    advantage_with["heroId2"]: advantage_with["synergy"]
+                    advantage_with["heroId2"]: advantage_with["synergy"] / 100
                     for advantage_with in advantage["with"]
                 }
                 synergiesVs = {
-                    advantage_vs["heroId2"]: advantage_vs["synergy"]
+                    advantage_vs["heroId2"]: advantage_vs["synergy"] / 100
                     for advantage_vs in advantage["vs"]
                 }
 
