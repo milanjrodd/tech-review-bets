@@ -1,6 +1,8 @@
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
-from pprint import pprint
+import pandas as pd
+import numpy as np
+import tensorflow as tf
 
 from dotenv import load_dotenv
 import os
@@ -106,11 +108,49 @@ for i in heroes_to_fetch:
 
 # create dataframe from dictionary synergyMatrix["HERALD_GUARDIAN"]
 
-import pandas as pd
 
-for rank in RankBracketBasicEnum:
-    df = pd.DataFrame.from_dict(synergyMatrix[rank], orient="index")
-    print(f"{rank} MATRIX\n", df)
+# call the function (matches_data)
+def CreateSynergyData(matches_data: pd.DataFrame):
+    output = []
 
-# Print the counter matrix
-# print(counterMatrix)
+    for _, match in matches_data.iterrows():
+        data = []
+
+        rankTier = match["avg_rank_tier"].astype(float) * 100
+
+        if rankTier >= 10 and rankTier <= 25:
+            rankTier = "HERALD_GUARDIAN"
+        elif rankTier >= 30 and rankTier <= 45:
+            rankTier = "CRUSADER_ARCHON"
+        elif rankTier >= 50 and rankTier <= 65:
+            rankTier = "LEGEND_ANCIENT"
+        elif rankTier >= 70 and rankTier <= 85:
+            rankTier = "DIVINE_IMMORTAL"
+        else:
+            raise Exception("Invalid rank tier")
+
+        for hero1 in range(1, 6):
+            radiantHero1 = match[f"radiant_hero_{hero1}"]
+            direHero1 = match[f"dire_hero_{hero1}"]
+            for hero2 in range(1, 6):
+                if hero1 == hero2:
+                    continue
+
+                radiantHero2 = match[f"radiant_hero_{hero2}"]
+                direHero2 = match[f"dire_hero_{hero2}"]
+
+                data.append(synergyMatrix[rankTier][radiantHero1][radiantHero2])
+                data.append(synergyMatrix[rankTier][direHero1][direHero2])
+
+            for hero2 in range(1, 6):
+                direHero2 = match[f"dire_hero_{hero2}"]
+                data.append(counterMatrix[rankTier][radiantHero1][direHero2])
+
+        output.append(data)
+
+    return output
+
+
+# for rank in RankBracketBasicEnum:
+#     df = pd.DataFrame.from_dict(synergyMatrix[rank], orient="index")
+#     print(f"{rank} MATRIX\n", df)

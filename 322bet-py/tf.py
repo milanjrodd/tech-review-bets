@@ -5,6 +5,7 @@ import pandas as pd
 from pathlib import Path
 import process_data
 import os
+from heroes_synergy import CreateSynergyData
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -55,8 +56,7 @@ def main():
     else:
         matches = pd.read_csv(process_matches_path)
 
-
-    matches_data = matches
+    matches_data = matches.head(100000)
 
     testDataCount = len(matches_data) // 4
 
@@ -80,9 +80,11 @@ def main():
         np.float32,
         name="train_input",
     )
-    one_hot_heroes_tensor_train = get_one_hot_heroes_tensor(trainData, 140)
-    # tensor_train_input = tf.concat(
-    #     [tensor_train_input, one_hot_heroes_tensor_train], 1)
+    train_synergies = tf.convert_to_tensor(
+        CreateSynergyData(trainData), np.float32, name="synergies"
+    )
+    tensor_train_input = tf.concat([tensor_train_input, train_synergies], 1)
+
     data_train_output = trainData["radiant_win"].to_numpy()
     tensor_train_output = tf.convert_to_tensor(
         [[i] for i in data_train_output], np.float32, name="train_output"
@@ -108,9 +110,11 @@ def main():
         np.float32,
         name="test_input",
     )
-    one_hot_heroes_tensor_test = get_one_hot_heroes_tensor(testData, 140)
-    # tensor_test_input = tf.concat(
-    #     [tensor_test_input, one_hot_heroes_tensor_test], 1)
+    test_synergies = tf.convert_to_tensor(
+        CreateSynergyData(testData), np.float32, name="synergies"
+    )
+
+    tensor_test_input = tf.concat([tensor_test_input, test_synergies], 1)
     data_test_output = np.array([[i] for i in testData["radiant_win"].to_numpy()])
 
     # Define Sequential model with 2 layers
