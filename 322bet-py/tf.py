@@ -56,7 +56,7 @@ def main():
     else:
         matches = pd.read_csv(process_matches_path)
 
-    matches_data = matches.head(100000)
+    matches_data = matches
 
     testDataCount = len(matches_data) // 4
 
@@ -120,8 +120,8 @@ def main():
     # Define Sequential model with 2 layers
     model = keras.Sequential(
         [
-            layers.Dense(256, activation="relu", name="input"),
-            layers.Dense(128, activation="sigmoid", name="hidden1"),
+            layers.Dense(64, activation="relu", name="input"),
+            layers.Dense(32, activation="sigmoid", name="hidden1"),
             layers.Dense(1, activation="sigmoid", name="output"),
         ]
     )
@@ -144,7 +144,7 @@ def main():
         tensor_train_input,
         tensor_train_output,
         validation_data=(tensor_test_input, data_test_output),
-        epochs=30,
+        epochs=100,
         batch_size=16000,
         callbacks=[model_checkpoint_callback],
     )
