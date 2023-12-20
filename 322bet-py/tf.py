@@ -44,7 +44,7 @@ def main():
         print("GPU Available", physical_devices)
         tf.config.set_logical_device_configuration(
             physical_devices[0],
-            [tf.config.LogicalDeviceConfiguration(memory_limit=5600)],
+            [tf.config.LogicalDeviceConfiguration(memory_limit=10000)],
         )
 
     # Read mathes data
@@ -55,11 +55,12 @@ def main():
     else:
         matches = pd.read_csv(process_matches_path)
 
-    matches = matches.head(160000)
 
-    testDataCount = len(matches) // 4
+    matches_data = matches
 
-    trainData = matches.head(-testDataCount)
+    testDataCount = len(matches_data) // 4
+
+    trainData = matches_data.head(-testDataCount)
     tensor_train_input = tf.convert_to_tensor(
         trainData[
             [
@@ -87,7 +88,7 @@ def main():
         [[i] for i in data_train_output], np.float32, name="train_output"
     )
 
-    testData = matches.tail(testDataCount)
+    testData = matches_data.tail(testDataCount)
     tensor_test_input = tf.convert_to_tensor(
         testData[
             [
@@ -115,8 +116,8 @@ def main():
     # Define Sequential model with 2 layers
     model = keras.Sequential(
         [
-            layers.Dense(128, activation="relu", name="input"),
-            layers.Dense(64, activation="relu", name="hidden1"),
+            layers.Dense(256, activation="relu", name="input"),
+            layers.Dense(128, activation="sigmoid", name="hidden1"),
             layers.Dense(1, activation="sigmoid", name="output"),
         ]
     )
@@ -139,8 +140,8 @@ def main():
         tensor_train_input,
         tensor_train_output,
         validation_data=(tensor_test_input, data_test_output),
-        epochs=300,
-        batch_size=4800,
+        epochs=30,
+        batch_size=16000,
         callbacks=[model_checkpoint_callback],
     )
 
