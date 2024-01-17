@@ -5,3 +5,4 @@ node_modules
 322bet-py/main.py
 **/__pycache__
 .env*
+322bet-py/models/model_lts.keras
