@@ -9,7 +9,8 @@ ParallelPandas.initialize(n_cpu=8, disable_pr_bar=False, split_factor=2)
 
 def process_matches(path: str | pathlib.Path | pathlib.PurePath):
     # Get the current working directory
-    data_parser_dir = pathlib.Path("../dataParser")
+
+    data_parser_dir = pathlib.Path(__file__).parent.parent / "dataParser"
 
     # Construct the file paths
     matches_path = os.path.join(data_parser_dir, "matches.csv")

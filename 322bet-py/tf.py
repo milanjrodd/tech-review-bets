@@ -5,7 +5,7 @@ import pandas as pd
 from pathlib import Path
 import process_data
 import os
-from heroes_synergy import CreateSynergyData
+from heroes_synergy import ApplySynergyData
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -49,7 +49,7 @@ def main():
         )
 
     # Read mathes data
-    process_matches_path = Path("./data/matches_processed.csv")
+    process_matches_path = Path(__file__).parent / "./data/matches_processed.csv"
 
     if not Path(process_matches_path).exists():
         matches = process_data.process_matches(process_matches_path)
@@ -81,7 +81,7 @@ def main():
         name="train_input",
     )
     train_synergies = tf.convert_to_tensor(
-        CreateSynergyData(trainData), np.float32, name="synergies"
+        ApplySynergyData(trainData), np.float32, name="synergies"
     )
     tensor_train_input = tf.concat([tensor_train_input, train_synergies], 1)
 
@@ -111,7 +111,7 @@ def main():
         name="test_input",
     )
     test_synergies = tf.convert_to_tensor(
-        CreateSynergyData(testData), np.float32, name="synergies"
+        ApplySynergyData(testData), np.float32, name="synergies"
     )
 
     tensor_test_input = tf.concat([tensor_test_input, test_synergies], 1)
