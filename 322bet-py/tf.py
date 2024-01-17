@@ -5,7 +5,7 @@ import pandas as pd
 from pathlib import Path
 import process_data
 import os
-from heroes_synergy import ApplySynergyData
+from heroes_synergy import CreateSynergyData
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -57,10 +57,13 @@ def main():
         matches = pd.read_csv(process_matches_path)
 
     matches_data = matches
+    mathes_synergy_data = CreateSynergyData(matches_data)
 
     testDataCount = len(matches_data) // 4
 
     trainData = matches_data.head(-testDataCount)
+    trainSynergies = mathes_synergy_data.head(-testDataCount).values.tolist()
+
     tensor_train_input = tf.convert_to_tensor(
         trainData[
             [
@@ -80,10 +83,10 @@ def main():
         np.float32,
         name="train_input",
     )
-    train_synergies = tf.convert_to_tensor(
-        ApplySynergyData(trainData), np.float32, name="synergies"
+    tensor_train_synergies = tf.convert_to_tensor(
+        trainSynergies, np.float32, name="synergies"
     )
-    tensor_train_input = tf.concat([tensor_train_input, train_synergies], 1)
+    tensor_train_input = tf.concat([tensor_train_input, tensor_train_synergies], 1)
 
     data_train_output = trainData["radiant_win"].to_numpy()
     tensor_train_output = tf.convert_to_tensor(
@@ -91,6 +94,8 @@ def main():
     )
 
     testData = matches_data.tail(testDataCount)
+    testSynergies = mathes_synergy_data.tail(testDataCount).values.tolist()
+
     tensor_test_input = tf.convert_to_tensor(
         testData[
             [
@@ -110,11 +115,11 @@ def main():
         np.float32,
         name="test_input",
     )
-    test_synergies = tf.convert_to_tensor(
-        ApplySynergyData(testData), np.float32, name="synergies"
+    tensor_test_synergies = tf.convert_to_tensor(
+        testSynergies, np.float32, name="synergies"
     )
 
-    tensor_test_input = tf.concat([tensor_test_input, test_synergies], 1)
+    tensor_test_input = tf.concat([tensor_test_input, tensor_test_synergies], 1)
     data_test_output = np.array([[i] for i in testData["radiant_win"].to_numpy()])
 
     # Define Sequential model with 2 layers

@@ -84,35 +84,17 @@ batch_size = 30
 heroes_to_fetch = range(0, total_heroes, batch_size)
 
 
-def ApplySynergyData(matches_data: pd.DataFrame):
-    """Apply Synergy Data"""
-    # Create a 4D numpy array with dimensions (total_ranks, total_heroes, total_heroes)
+def CreateSynergyData(matches_data: pd.DataFrame) -> pd.DataFrame:
+    """Create Synergy Data from data frame"""
+
+    # Create a 3D numpy array with dimensions (total_ranks, total_heroes, total_heroes)
     synergyMatrix, counterMatrix = [
         np.zeros((len(RankBracketBasicEnum), total_heroes + 1, total_heroes + 1))
         for _ in range(2)
     ]
 
-    def calculate_synergy(match: pd.Series):
-        data = []
-        rank = map_rank_tier_to_enum(match["avg_rank_tier"].astype(float) * 100)
-
-        for hero1 in range(1, 6):
-            radiantHero1 = match[f"radiant_hero_{hero1}"].astype(int)
-            direHero1 = match[f"dire_hero_{hero1}"].astype(int)
-            for hero2 in range(1, 6):
-                direHero2 = match[f"dire_hero_{hero2}"].astype(int)
-                data.append(counterMatrix[rank.value][radiantHero1][direHero2])
-
-                if hero1 == hero2:
-                    continue
-
-                radiantHero2 = match[f"radiant_hero_{hero2}"].astype(int)
-
-                data.append(synergyMatrix[rank.value][radiantHero1][radiantHero2])
-                data.append(synergyMatrix[rank.value][direHero1][direHero2])
-
-        return data
-
+    # Fetch data from Stratz API and store it in synergyMatrix and counterMatrix
+    print("Fetching synergies from Stratz API")
     for i in heroes_to_fetch:
         print(f"Executing batch {i + 1} to {min(i + batch_size, total_heroes)}")
         hero_ids = range(i + 1, min(i + batch_size + 1, total_heroes + 1))
@@ -144,5 +126,26 @@ def ApplySynergyData(matches_data: pd.DataFrame):
                             hero_id2
                         ]
 
-    output = matches_data.p_apply(calculate_synergy, axis=1)  # type: ignore
-    return output.values.tolist()
+    def convert_match_to_synergies(match: pd.Series):
+        data = []
+        rank = map_rank_tier_to_enum(match["avg_rank_tier"].astype(float) * 100)
+
+        for hero1 in range(1, 6):
+            radiantHero1 = match[f"radiant_hero_{hero1}"].astype(int)
+            direHero1 = match[f"dire_hero_{hero1}"].astype(int)
+            for hero2 in range(1, 6):
+                direHero2 = match[f"dire_hero_{hero2}"].astype(int)
+                data.append(counterMatrix[rank.value][radiantHero1][direHero2])
+
+                if hero1 == hero2:
+                    continue
+
+                radiantHero2 = match[f"radiant_hero_{hero2}"].astype(int)
+
+                data.append(synergyMatrix[rank.value][radiantHero1][radiantHero2])
+                data.append(synergyMatrix[rank.value][direHero1][direHero2])
+
+        return data
+
+    output = matches_data.p_apply(convert_match_to_synergies, axis=1)  # type: ignore
+    return output
