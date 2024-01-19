@@ -74,7 +74,6 @@ def process_matches(path: str | pathlib.Path | pathlib.PurePath):
             / heroes.loc[int(x)][f'{matches["avg_rank_tier"].iloc[0]//10}_pick']
         )
 
-    print(df.head())
     # Save the dataframe to a CSV file
     df.to_csv(path, index=False)
     return df

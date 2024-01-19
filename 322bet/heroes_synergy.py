@@ -126,7 +126,7 @@ def CreateSynergyData(matches_data: pd.DataFrame) -> pd.DataFrame:
                             hero_id2
                         ]
 
-    def convert_match_to_synergies(match: pd.Series):
+    def calculate_synergies(match: pd.Series):
         data = []
         rank = map_rank_tier_to_enum(match["avg_rank_tier"].astype(float) * 100)
 
@@ -147,5 +147,5 @@ def CreateSynergyData(matches_data: pd.DataFrame) -> pd.DataFrame:
 
         return data
 
-    output = matches_data.p_apply(convert_match_to_synergies, axis=1)  # type: ignore
+    output = matches_data.p_apply(calculate_synergies, axis=1)  # type: ignore
     return output
