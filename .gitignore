@@ -1,8 +1,8 @@
 node_modules
 .DS_Store
-322bet-py/graphs/*.png
-322bet-py/data/*.csv
-322bet-py/main.py
+322bet/graphs/*.png
+322bet/data/*.csv
+322bet/main.py
 **/__pycache__
 .env*
 322bet-py/models/model_lts.keras
