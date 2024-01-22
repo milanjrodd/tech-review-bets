@@ -5,6 +5,7 @@ from pathlib import Path
 import process_data
 import os
 from heroes_synergy import CreateSynergyData
+import tensorflowjs as tfjs
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -168,7 +169,8 @@ def main():
 
     # Save model
     path_to_save = Path("models/model_lts.keras")
-    model.save(path_to_save)
+    model.save(path_to_save, save_format="keras")
+    tfjs.converters.save_keras_model(model, Path("models/export/lts"))
     print("Saved model to disk")
 
 
