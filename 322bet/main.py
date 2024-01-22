@@ -1,6 +1,5 @@
 import numpy as np
 import keras
-from keras import layers
 import pandas as pd
 from pathlib import Path
 import process_data
@@ -30,10 +29,12 @@ def get_one_hot_heroes_tensor(targets: pd.DataFrame, nb_classes: int):
             ]
         ].to_numpy()
     ]
+
     one_hot_heroes = one_hot_heroes.reshape(len(targets), nb_classes * 10)
     one_hot_heroes_tensor = tf.convert_to_tensor(
         one_hot_heroes, np.float32, name="one_hot_heroes"
     )
+
     return one_hot_heroes_tensor
 
 
@@ -125,9 +126,9 @@ def main():
     # Define Sequential model with 2 layers
     model = keras.Sequential(
         [
-            layers.Dense(64, activation="relu", name="input"),
-            layers.Dense(32, activation="sigmoid", name="hidden1"),
-            layers.Dense(1, activation="sigmoid", name="output"),
+            keras.layers.Dense(64, activation="relu", name="input"),
+            keras.layers.Dense(32, activation="sigmoid", name="hidden1"),
+            keras.layers.Dense(1, activation="sigmoid", name="output"),
         ]
     )
 
