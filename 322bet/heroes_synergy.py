@@ -36,7 +36,7 @@ def map_rank_tier_to_enum(avg_rank_tier):
     elif 70 <= avg_rank_tier <= 85:
         return RankBracketBasicEnum.DIVINE_IMMORTAL
     else:
-        raise ValueError("Invalid rank tier")
+        raise ValueError("Invalid rank tier", avg_rank_tier)
 
 
 def create_query(hero_ids):
@@ -81,10 +81,9 @@ total_heroes = 138
 batch_size = 30
 
 # Create loop for 138 heroes batched by 30 heroes in one query
-heroes_to_fetch = range(0, total_heroes, batch_size)
 
 
-def CreateSynergyData(matches_data: pd.DataFrame) -> pd.DataFrame:
+def CreateSynergyData(matches_data: pd.DataFrame, strict: bool = False) -> pd.DataFrame:
     """Create Synergy Data from data frame"""
 
     # Create a 3D numpy array with dimensions (total_ranks, total_heroes, total_heroes)
@@ -93,42 +92,101 @@ def CreateSynergyData(matches_data: pd.DataFrame) -> pd.DataFrame:
         for _ in range(2)
     ]
 
-    # Fetch data from Stratz API and store it in synergyMatrix and counterMatrix
     print("Fetching synergies from Stratz API")
-    for i in heroes_to_fetch:
-        print(f"Executing batch {i + 1} to {min(i + batch_size, total_heroes)}")
-        hero_ids = range(i + 1, min(i + batch_size + 1, total_heroes + 1))
-        query = gql(create_query(hero_ids))
-        for rank in RankBracketBasicEnum:
-            result = client.execute(query, {"mmr": rank.name})
-            print(f"{rank} executed for heroes {hero_ids}")
 
-            for k, hero_id in enumerate(hero_ids, start=1):
-                advantages = result["heroStats"][f"h{k}"]["advantage"]
+    if strict:
+        # Get all the heroes that are present in the matches_data
+        heroes = set()
 
-                for l, advantage in enumerate(advantages):
-                    synergiesWith = {
-                        advantage_with["heroId2"]: advantage_with["synergy"] / 100
-                        for advantage_with in advantage["with"]
-                    }
-                    synergiesVs = {
-                        advantage_vs["heroId2"]: advantage_vs["synergy"] / 100
-                        for advantage_vs in advantage["vs"]
-                    }
+        for i in range(1, 6):
+            heroes.update(matches_data[f"radiant_hero_{i}"])
+            heroes.update(matches_data[f"dire_hero_{i}"])
 
-                    for hero_id2 in synergiesWith.keys():
-                        synergyMatrix[rank.value][hero_id][hero_id2] = synergiesWith[
-                            hero_id2
-                        ]
+        print(f"Total heroes: {len(heroes)}", heroes)
 
-                    for hero_id2 in synergiesVs.keys():
-                        counterMatrix[rank.value][hero_id][hero_id2] = synergiesVs[
-                            hero_id2
-                        ]
+        # Get all ranks from the matches_data
+
+        ranks = set()
+
+        for i in range(len(matches_data)):
+            ranks.add(matches_data["avg_rank_tier"].iloc[i])
+
+        # Map the ranks to the enum
+        ranks = list(map(map_rank_tier_to_enum, ranks))
+
+        print(f"Total ranks: {len(ranks)}", ranks)
+
+        heroes_to_fetch = range(0, len(heroes), batch_size)
+
+        # Fetch data from Stratz API and store it in synergyMatrix and counterMatrix
+        for i in heroes_to_fetch:
+            print(f"Executing batch {i + 1} to {len(heroes_to_fetch)}")
+            hero_ids = heroes
+            query = gql(create_query(hero_ids))
+            for rank in ranks:
+                result = client.execute(query, {"mmr": rank.name})
+                print(f"{rank} executed for heroes {hero_ids}")
+
+                for k, hero_id in enumerate(hero_ids, start=1):
+                    advantages = result["heroStats"][f"h{k}"]["advantage"]
+
+                    for l, advantage in enumerate(advantages):
+                        synergiesWith = {
+                            advantage_with["heroId2"]: advantage_with["synergy"] / 100
+                            for advantage_with in advantage["with"]
+                        }
+                        synergiesVs = {
+                            advantage_vs["heroId2"]: advantage_vs["synergy"] / 100
+                            for advantage_vs in advantage["vs"]
+                        }
+
+                        for hero_id2 in synergiesWith.keys():
+                            synergyMatrix[rank.value][hero_id][
+                                hero_id2
+                            ] = synergiesWith[hero_id2]
+
+                        for hero_id2 in synergiesVs.keys():
+                            counterMatrix[rank.value][hero_id][hero_id2] = synergiesVs[
+                                hero_id2
+                            ]
+    else:
+        heroes_to_fetch = range(0, total_heroes, batch_size)
+
+        # Fetch data from Stratz API and store it in synergyMatrix and counterMatrix
+        for i in heroes_to_fetch:
+            print(f"Executing batch {i + 1} to {min(i + batch_size, total_heroes)}")
+            hero_ids = range(i + 1, min(i + batch_size + 1, total_heroes + 1))
+            query = gql(create_query(hero_ids))
+            for rank in RankBracketBasicEnum:
+                result = client.execute(query, {"mmr": rank.name})
+                print(f"{rank} executed for heroes {hero_ids}")
+
+                for k, hero_id in enumerate(hero_ids, start=1):
+                    advantages = result["heroStats"][f"h{k}"]["advantage"]
+
+                    for l, advantage in enumerate(advantages):
+                        synergiesWith = {
+                            advantage_with["heroId2"]: advantage_with["synergy"] / 100
+                            for advantage_with in advantage["with"]
+                        }
+                        synergiesVs = {
+                            advantage_vs["heroId2"]: advantage_vs["synergy"] / 100
+                            for advantage_vs in advantage["vs"]
+                        }
+
+                        for hero_id2 in synergiesWith.keys():
+                            synergyMatrix[rank.value][hero_id][
+                                hero_id2
+                            ] = synergiesWith[hero_id2]
+
+                        for hero_id2 in synergiesVs.keys():
+                            counterMatrix[rank.value][hero_id][hero_id2] = synergiesVs[
+                                hero_id2
+                            ]
 
     def calculate_synergies(match: pd.Series):
         data = []
-        rank = map_rank_tier_to_enum(match["avg_rank_tier"].astype(float) * 100)
+        rank = map_rank_tier_to_enum(match["avg_rank_tier"].astype(float))
 
         for hero1 in range(1, 6):
             radiantHero1 = match[f"radiant_hero_{hero1}"].astype(int)
@@ -147,5 +205,7 @@ def CreateSynergyData(matches_data: pd.DataFrame) -> pd.DataFrame:
 
         return data
 
-    output = matches_data.p_apply(calculate_synergies, axis=1)  # type: ignore
-    return output
+    if strict:
+        return matches_data.apply(calculate_synergies, axis=1)  # type: ignore
+
+    return matches_data.p_apply(calculate_synergies, axis=1)  # type: ignore
