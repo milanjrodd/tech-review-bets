@@ -59,11 +59,9 @@ def predict(
     heroes_path = path.join(data_parser_dir, "heroes.json")
 
     heroes = pd.read_json(heroes_path).set_index("id")
-    print(heroes.head(10))
 
     # Add avg_rank_tier to the dataframe
     df["avg_rank_tier"] = avg_rank_tier
-    print(df)
 
     for i in range(1, 6):
         df[f"radiant_hero_{i}_winrate"] = df[f"radiant_hero_{i}"].apply(
@@ -74,8 +72,6 @@ def predict(
             lambda x: heroes.loc[int(x)][f'{df["avg_rank_tier"].iloc[0]//10}_win']
             / heroes.loc[int(x)][f'{df["avg_rank_tier"].iloc[0]//10}_pick']
         )
-
-    print(df)
 
     # Get heroes synergy data
     synergy_df = CreateSynergyData(df, strict=True).values.tolist()
@@ -108,8 +104,6 @@ def predict(
 
     # Perform prediction using the loaded model
     prediction = model.predict(tensor_data)
-
-    print(prediction)
 
     return {"prediction": prediction[0].item()}
 
