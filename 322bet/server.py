@@ -105,7 +105,7 @@ def predict(
     # Perform prediction using the loaded model
     prediction = model.predict(tensor_data)
 
-    return {"prediction": prediction[0].item()}
+    return {"radiant_win_prediction": prediction[0].item()}
 
 
 if __name__ == "__main__":  #
