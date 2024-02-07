@@ -232,12 +232,13 @@ const PredictButton: React.FC<{
 }> = ({ isFetching, disabled }) => {
   if (isFetching) {
     return (
-      <Button className="mt-10" disabled={isFetching || disabled}>
+      <Button className="mt-10" disabled>
         <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
         Please wait
       </Button>
     );
   }
+
   return (
     <Button className="mt-10" disabled={disabled}>
       Predict Match Result
