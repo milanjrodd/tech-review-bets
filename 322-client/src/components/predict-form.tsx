@@ -24,7 +24,8 @@ import {
   SelectContent,
   Select,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { Hero } from "@/types/heroes";
 
 const HEROES_MOCK = [
   { name: "Abaddon", id: 1 },
@@ -150,6 +151,26 @@ const HEROES_MOCK = [
 ];
 
 export default function PredictComponent() {
+  const [heroes, setHeroes] = useState<Hero[]>([]);
+  useEffect(() => {
+    (async () => {
+      let headersList = {
+        Accept: "*/*",
+        "User-Agent": "Thunder Client (https://www.thunderclient.com)",
+      };
+
+      let response = await fetch("https://api.opendota.com/api/heroes", {
+        method: "GET",
+        headers: headersList,
+      });
+
+      let data: Hero[] = await response.json();
+
+      setHeroes(data);
+    })();
+    // Fetch heroes from API https://api.opendota.com/api/heroes
+  }, []);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <h1 className="text-3xl font-bold">322 Bet</h1>
@@ -159,7 +180,7 @@ export default function PredictComponent() {
           <h2 className="text-xl font-semibold mb-4">Radiant</h2>
           <div className="space-y-4">
             {Array.from({ length: 5 }).map((_, index) => (
-              <HeroComboBox key={index} heroes={HEROES_MOCK} />
+              <HeroComboBox key={index} heroes={heroes} />
             ))}
           </div>
         </div>
@@ -167,7 +188,7 @@ export default function PredictComponent() {
           <h2 className="text-xl font-semibold mb-4">Dire</h2>
           <div className="space-y-4">
             {Array.from({ length: 5 }).map((_, index) => (
-              <HeroComboBox key={index} heroes={HEROES_MOCK} />
+              <HeroComboBox key={index} heroes={heroes} />
             ))}
           </div>
         </div>
@@ -195,7 +216,7 @@ export default function PredictComponent() {
 }
 
 interface HeroComboBoxProps {
-  heroes: { name: string; id: number }[];
+  heroes: Hero[];
 }
 
 const HeroComboBox: React.FC<HeroComboBoxProps> = ({ heroes }) => {
@@ -211,9 +232,7 @@ const HeroComboBox: React.FC<HeroComboBoxProps> = ({ heroes }) => {
           variant="outline"
         >
           {value
-            ? HEROES_MOCK.find(
-                (hero) => hero.name.toLocaleLowerCase() === value
-              )?.name
+            ? heroes.find((hero) => hero.name === value)?.localized_name
             : "Select Hero..."}
 
           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -233,7 +252,7 @@ const HeroComboBox: React.FC<HeroComboBoxProps> = ({ heroes }) => {
                   setOpen(false);
                 }}
               >
-                {hero.name}
+                {hero.localized_name}
               </CommandItem>
             ))}
           </CommandGroup>
