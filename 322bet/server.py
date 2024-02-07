@@ -20,18 +20,18 @@ if model is None or not isinstance(model, keras.Model):
 app = FastAPI(title="322bet", description="Dota 2 match prediction API")
 
 
-from fastapi import Query
+from fastapi import Query, Body
 
 
-@app.get("/predict")
+@app.post("/api/predict")
 def predict(
-    ids: list[int] = Query(
+    ids: list[int] = Body(
         ...,
         min_length=10,
         max_length=10,
         example=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     ),
-    avg_rank_tier: int = Query(..., ge=10, le=85, example=10),
+    avg_rank_tier: int = Body(..., ge=10, le=85, example=10),
 ):
     # Check if the model is loaded
     if model is None:
