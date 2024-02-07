@@ -148,7 +148,10 @@ export default function PredictComponent() {
       onSubmit={submitPredictHandler}
     >
       <h1 className="text-3xl font-bold">322 Bet</h1>
-      <h1 className="text-2xl font-bold mb-10">Dota 2 Match Predictor</h1>
+      <h2 className="text-2xl font-bold">Dota 2 Match Predictor</h2>
+      <h3 className="text-sm font-light mb-10 text-gray-400">
+        Current success rate: 58.86%
+      </h3>
       <div className="grid grid-cols-2 gap-10 w-full max-w-3xl p-4 bg-white rounded-lg shadow-md dark:bg-gray-800">
         <div>
           <h2 className="text-xl font-semibold mb-4">Radiant</h2>
